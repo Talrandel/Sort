@@ -1,0 +1,5 @@
+D:\Programs\Sort\Sort\bin\x64\Release\Sort.exe.config
+D:\Programs\Sort\Sort\bin\x64\Release\Sort.exe
+D:\Programs\Sort\Sort\bin\x64\Release\Sort.pdb
+D:\Programs\Sort\Sort\obj\x64\Release\Sort.exe
+D:\Programs\Sort\Sort\obj\x64\Release\Sort.pdb
