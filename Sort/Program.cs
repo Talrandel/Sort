@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Sort
 {
     class Program
     {
+        // TODO: запуск с параметрами - без интерфейса, с параметрами - ручной режим.
+        // TODO: читать данные на старте из файла? Конфиг ли?
         static void Main(string[] args)
         {
             int i;
