@@ -1,227 +1,215 @@
-﻿using System;
+﻿using Sort.Sort_Algorithms;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Sort
 {
-    /*
-     * Пузырьком - 2, Перемешиванием, Гномья, Быстрая - 5, Расческой, Чёт-нечет
-     * Выбором - 4, Пирамидальная - 6, Плавная
-     * Вставками - 3, Шелла - 7, Деревом - 8
-     * Слиянием - 9
-     * Подсчётом, Поразрядная, Блочная
-     * Introsort, Timsort
-     * Топологическая, Сети, Битонная
-     * Bogosort, Stooge Sort, Глупая - 1, Блинная
-     * */
-    enum SortType                                             
-    {
-        Stupid = 1,         // +
-        Bubble = 2,         // +
-        Insertion = 3,      // +
-        Selection = 4,      // +
-
-        Quick = 5,          // +
-        Pyramid = 6,        // +
-        Shell = 7,          // +
-        BinaryTree = 8,     // +
-        Merge = 9,          // +
-        J = 10,             // +
-        Smooth = 11,        // -
-    }
-
-    class TreeNode
-    {
-        public int value;
-        public TreeNode left;
-        public TreeNode right;
-    }
-
+    /// <summary>
+    /// Класс массива с возможностью его сортировки.
+    /// </summary>
     class MyArray
     {
-        private int[] array;
+        #region Поля, свойства, константы
 
-        private int[] arrayCopy;
+        /// <summary>
+        /// Нижняя граница для генерации элементов массива.
+        /// </summary>
+        private readonly int _lowerBound;
+        /// <summary>
+        /// Верхняя граница для генерации элементов массива.
+        /// </summary>
+        private readonly int _upperBound;
+        /// <summary>
+        /// Константа границ по умолчанию для генерации элемента массива.
+        /// </summary>
+        private const int _constBounds = 10000;
+        /// <summary>
+        /// Исходный массив для сортировки.
+        /// </summary>
+        private int[] _array;
+        /// <summary>
+        /// Копия исходного массива.
+        /// </summary>
+        private int[] _arrayCopy;
+        /// <summary>
+        /// Генератор ПСЧ.
+        /// </summary>
+        private Random _rand;
+        /// <summary>
+        /// Исходное значение для генератора ПСЧ по умолчанию.
+        /// </summary>
+        private const int _constSeed = 0;
+        /// <summary>
+        /// Объект для печати массива, результатов сортировок и прочего.
+        /// </summary>
+        private IPrinter _printer;
+        /// <summary>
+        /// Словарь пар "тип сортировки - реализация".
+        /// </summary>
+        private Dictionary<SortTypes, ISort> _sortMethods;
+        /// <summary>
+        /// Словарь пар "тип сортировки - ее имя".
+        /// </summary>
+        private Dictionary<SortTypes, string> _sortNames;
 
-        private Random rand;
+        #endregion
 
-        public void SetSeed(int value)
+        #region Конструкторы
+        /// <summary>
+        /// Самый полный конструктор класса.
+        /// </summary>
+        /// <param name="arrayLength">Размер массива для сортировки.</param>
+        /// <param name="seed">Начальное значение для генератора ПСЧ.</param>
+        /// <param name="bounds">Границы генерации элементов массива.</param>
+        /// <param name="printer">Реализация интерфейса <see cref="IPrinter"/>.</param>
+        public MyArray(int arrayLength, int seed, int bounds, IPrinter printer)
         {
-            rand = new Random(value);
+            _array = new int[arrayLength];
+            _arrayCopy = new int[arrayLength];
+            _rand = new Random(seed);
+            _lowerBound = (-1) * Math.Abs(bounds);
+            _upperBound = Math.Abs(bounds);
+            _printer = printer;
+            FillArrayWithRandomValues();
+            CopyArray(_array, _arrayCopy);
+            InitializeSortAlgorithms();
         }
 
+        /// <summary>
+        /// Простой конструктор по умолчанию, принимающий размер массива. По умолчанию ведет печать в консоли.
+        /// </summary>
+        /// <param name="arrayLength">Размер массива для сортировки.</param>
+        public MyArray(int arrayLength) : this(arrayLength, _constSeed, _constBounds, new ConsolePrinter())
+        { }
+
+        /// <summary>
+        /// Конструктор, принимающий размер массива и объект типа <see cref="IPrinter"/> для печати логов работы приложения.
+        /// </summary>
+        /// <param name="arrayLength">Размер массива для сортировки.</param>
+        /// <param name="printer">Реализация интерфейса <see cref="IPrinter"/>.</param>
+        public MyArray(int arrayLength, IPrinter printer) : this(arrayLength, _constSeed, _constBounds, printer)
+        { }
+
+        #endregion
+
+        #region Методы
+
+        /// <summary>
+        /// Индексатор массива.
+        /// </summary>
+        /// <param name="i">Индекс запрашиваемого элемента.</param>
+        /// <returns>Запрашиваемый элемент массива.</returns>
         public int this[int i]
         {
             get
             {
-                return this.array[i];
+                // TODO: Возможно, тут следует выбрасывать исключение, а не корректировать значение индекса.
+                if (i < 0)
+                    i = 0;
+                else if (i >= _array.Length)
+                    i = _array.Length - 1;
+                return _array[i];
             }
             set
             {
-                this.array[i] = value;
-            }
-        }
-
-        public void Sort(SortType sortType)
-        {
-            //Console.WriteLine("Массив до сортировки:");
-            //this.Print();
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            switch (sortType)
-            {
-                case SortType.Stupid:
-                    StupidSort();
-                    break;
-                case SortType.Bubble:
-                    BubbleSort();
-                    break;
-                case SortType.Insertion:
-                    InsertionSort();
-                    break;
-                case SortType.Selection:
-                    SelectionSort();
-                    break;
-                case SortType.Quick:
-                    QuickSort();
-                    break;
-                case SortType.Shell:
-                    ShellSort();
-                    break;
-                case SortType.Pyramid:
-                    PyramidSort();
-                    break;
-                case SortType.BinaryTree:
-                    TreeSort();
-                    break;
-                case SortType.Merge:
-                    MergeSort();
-                    break;
-                case SortType.J:
-                    JSort();
-                    break;
-                default:
-                    Console.WriteLine("Не знаю такую сортировку.");
-                    return;
-            }
-            sw.Stop();
-            //Console.WriteLine("Отсортированный массив:");
-            //this.Print();
-            Console.WriteLine("Время сортировки: " + (sw.ElapsedMilliseconds / 1000.0).ToString() + " секунд.\n");
-            CopyArray(arrayCopy, array);
-        }
-
-        private void StupidSort()
-        {
-            int i = 0;
-            while (i < array.Length - 1)
-            {
-                if (array[i + 1] < array[i])
-                {
-                    Swap(i, i + 1);
+                if (i < 0)
                     i = 0;
-                }
-                else
-                    i++;
+                else if (i >= _array.Length)
+                    i = _array.Length - 1;
+                _array[i] = value;
             }
         }
 
-        // NEW
-        private void TreeSort()
+        /// <summary>
+        /// Установить новое начальное значение значение для <see cref="_rand"/>.
+        /// </summary>
+        /// <param name="value">Новое начальное значение <see cref="_rand"/>.</param>
+        public void SetSeed(int value)
         {
-            TreeNode root = null;
-            for (int i = 0; i < array.Length; i++)
-            {
-                root = AddToTree(root, array[i]);
-            }
-            TreeToArray(root);
+            _rand = new Random(value);
         }
-        private TreeNode AddToTree(TreeNode root, int newValue)
-        {
-            if (root == null)
-            {
-                root = new TreeNode();
-                root.value = newValue;
-                root.left = root.right = null;
-                return root;
-            }
-            if (root.value < newValue)
-            {
-                root.right = AddToTree(root.right, newValue);
-            }
-            else
-            {
-                root.left = AddToTree(root.left, newValue);
-            }
-            return root;
-        }
-        private void TreeToArray(TreeNode root)
-        {
-            if (root == null)
-                return;
 
-            var stack = new Stack<TreeNode>();
-            var node = root;
-            var index = 0;
-            while (stack.Count > 0 || node != null)
+        /// <summary>
+        /// Сортировка текущего массива с применением заданных сортировок.
+        /// </summary>
+        /// <param name="sortTypes">Массив (любого размера) с типами сортировок, которыми следует его сортировать.</param>
+        public void Sort(params SortTypes[] sortTypes)
+        {
+            Stopwatch sw = new Stopwatch();
+            long elapsedMS = 0;
+            for (int i = 0; i < sortTypes.Length; i++)
             {
-                if (node == null)
+                if (_sortMethods.ContainsKey(sortTypes[i]))
                 {
-                    node = stack.Pop();
-                    array[index++] = node.value;
-                    node = node.right;
-                }
-                else
-                {
-                    stack.Push(node);
-                    node = node.left;
+                    sw.Reset();
+                    sw.Start();
+                    _sortMethods[sortTypes[i]].Sort(_array);
+                    sw.Stop();
+                    elapsedMS = sw.ElapsedMilliseconds;// / 1000;
+                    _printer.PrintMessage(string.Format("Массив на {0} элементов был отсортирован алгоритмом/методом {1} за {2} милисекунд.", _array.Length, Enum.GetName(typeof(SortTypes), sortTypes[i]), elapsedMS));
+                    CopyArray(_arrayCopy, _array);
                 }
             }
+            _printer.Flush();
         }
 
-        #region Вспомогательные методы
-
-        private void Print()
+        /// <summary>
+        /// Печать массива, используя реализацию выбранного объекта IPrinter.
+        /// </summary>
+        public void PrintArray()
         {
-            for (int i = 0; i < array.Length; i++)
-            {
-                Console.Write(array[i] + " ");
-            }
-            Console.WriteLine();
+            _printer.PrintArray(_array);
         }
 
+        /// <summary>
+        /// Копировать все элементы исходного массива в конечный.
+        /// </summary>
+        /// <param name="from">Исходный массив.</param>
+        /// <param name="to">Конечный массив.</param>
         private void CopyArray(int[] from, int[] to)
         {
-            for (int i = 0; i < array.Length; i++)
-            {
+            for (int i = 0; i < _array.Length; i++)
                 to[i] = from[i];
-            }
         }
 
-        private void Swap(int i, int j)
+        /// <summary>
+        /// Заполнение исходного массива случайными значениями.
+        /// </summary>
+        private void FillArrayWithRandomValues()
         {
-            int temp = array[i];
-            array[i] = array[j];
-            array[j] = temp;
+            for (int i = 0; i < _array.Length; i++)
+                _array[i] = _rand.Next(_lowerBound, _upperBound);
         }
 
-        private void FillArray()
+        /// <summary>
+        /// Заполнение исходного массива значениями из внешнего текстового файла.
+        /// </summary>
+        /// <param name="fileName">Имя файла с содержимым одномерного массива.</param>
+        private void FillArrayFromFile(string fileName)
         {
-            for (int i = 0; i < array.Length; i++)
-            {
-                array[i] = rand.Next(-100, 101);
-            }
+            _array = new int[1].LoadFromFile(fileName);
+        }
+
+        /// <summary>
+        /// Инициализация словаря с реализациями сортировок.
+        /// </summary>
+        private void InitializeSortAlgorithms()
+        {
+            // TODO: Заполнять из внешнего xml-файла?
+            _sortMethods = new Dictionary<SortTypes, ISort>();
+            _sortMethods.Add(SortTypes.Bubble, new BubbleSort());
+            _sortMethods.Add(SortTypes.Insertion, new InsertionSort());
+            _sortMethods.Add(SortTypes.Merge, new MergeSort());
+            _sortMethods.Add(SortTypes.Quick, new QuickSort());
+            _sortMethods.Add(SortTypes.Shell, new ShellSort());
+            _sortMethods.Add(SortTypes.BinaryTree, new TreeSort());
+            _sortMethods.Add(SortTypes.Selection, new SelectionSort());
+            _sortMethods.Add(SortTypes.J, new JSort());
+            _sortMethods.Add(SortTypes.Pyramid, new PyramidSort());
+            // TODO: Заполнять _sortNames?
         }
 
         #endregion
-
-        public MyArray(int n)
-        {
-            this.array = new int[n];
-            this.arrayCopy = new int[n];
-            this.rand = new Random();
-            FillArray();
-            CopyArray(array, arrayCopy);
-        }
     }
 }

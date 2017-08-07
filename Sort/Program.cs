@@ -1,4 +1,6 @@
 ﻿using System;
+using Sort.Sort_Algorithms;
+using System.Diagnostics;
 
 namespace Sort
 {
@@ -15,25 +17,12 @@ namespace Sort
                 
             } while (!Int32.TryParse(Console.ReadLine(), out i));
 
-            MyArray arr = new MyArray(i);
-            while (true)
-            {
-                i = -1;
-                do
-                {
-                    Console.WriteLine("Сортировки: глупая - 1, пузырьком - 2, вставками - 3, выбором - 4, быстрая - 5, пирамидальная - 6, Шелла - 7, бинарным деревом - 8, слиянием - 9, jsort - 10 ");
-                    Console.WriteLine(" < 0 для выхода.");
-                    Console.WriteLine("Введи номер сортировки: ");
-
-                } while (!Int32.TryParse(Console.ReadLine(), out i));
-
-                if (i < 0)
-                {
-                    break;
-                }
-
-                arr.Sort((SortType)i);
-            }
+            FilePrinter fPrinter = new FilePrinter();
+            MyArray arr = new MyArray(i, fPrinter);
+            SortTypes[] sortTypes = { SortTypes.BinaryTree, SortTypes.Bubble, SortTypes.Insertion, SortTypes.J, SortTypes.Merge, SortTypes.Pyramid, SortTypes.Quick, SortTypes.Selection, SortTypes.Shell };
+            arr.Sort(sortTypes);
+            Console.WriteLine("sorted");
+            Process.Start("notepad++", "Sort.txt");
         }
     }
 }

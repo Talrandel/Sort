@@ -62,6 +62,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArrayExtensions.cs" />
+    <Compile Include="ConsolePrinter.cs" />
+    <Compile Include="FilePrinter.cs" />
+    <Compile Include="IPrinter.cs" />
     <Compile Include="MyArray.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -74,6 +77,7 @@
     <Compile Include="Sort_Algorithms\QuickSort.cs" />
     <Compile Include="Sort_Algorithms\SelectionSort.cs" />
     <Compile Include="Sort_Algorithms\ShellSort.cs" />
+    <Compile Include="Sort_Algorithms\SortTypes.cs" />
     <Compile Include="Sort_Algorithms\TreeSort.cs" />
   </ItemGroup>
   <ItemGroup>
